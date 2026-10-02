@@ -3,7 +3,33 @@
 > **Rural-to-Specialist Telemedicine & Emergency Dispatch Bridge**
 > Connecting rural patients, Rural Medical Practitioners (RMPs), specialist doctors, and district emergency health administrators.
 
-📘 **Full Architectural Specification**: See [JeevanSetu Master MVP Plan](file:///d:/jivanSetu%20Web/docs/JeevanSetu_MVP_Plan.md) for detailed technical specifications, clinical scoring formulas, state diagrams, and deployment guides.
+📘 **Full Architectural Specification**: See [JeevanSetu Master MVP Plan](docs/JeevanSetu_MVP_Plan.md) for detailed technical specifications, clinical scoring formulas, state diagrams, and deployment guides.
+
+---
+
+## 🔗 Live Demo & Links
+
+| | |
+|---|---|
+| 🌐 **Live Application** | **https://jeevan-setu-opal.vercel.app** |
+| 📦 **Source Repository** | https://github.com/Priyanshasr/JeevanSetu |
+| 📄 **Architecture Docs** | [docs/JeevanSetu_MVP_Plan.md](docs/JeevanSetu_MVP_Plan.md) |
+
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-0F766E?style=for-the-badge&logo=vercel&logoColor=white)](https://jeevan-setu-opal.vercel.app)
+[![Stack](https://img.shields.io/badge/React_19-V61DAF?style=for-the-badge&logo=react&logoColor=20232A)](https://react.dev)
+[![Stack](https://img.shields.io/badge/Node.js_24-5FA04E?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org)
+
+> **Note:** The live deployment is a frontend-only Vercel build. Features that require the backend (real SMS/WhatsApp dispatch, Socket.io emergency alerts, WebRTC signaling) run against the local server via `npm run dev`. The frontend gracefully falls back to demo/simulated data when the API is unreachable.
+
+**Demo credentials** (seeded via `npm run db:seed`) — all demo accounts use the password `DemoPass@123`:
+
+| Role | Mobile Number |
+|---|---|
+| Patient | `9876543210` |
+| Patient (2nd) | `9876543220` |
+| RMP | `9876543301` |
+| Specialist Doctor | `9876543401` |
+| District Admin | `9876543999` |
 
 ---
 
@@ -197,3 +223,50 @@ Client runs at `http://localhost:5173`.
   ```bash
   node server/tests/test_integrations.js
   ```
+- Security & RBAC Test Suite:
+  ```bash
+  node server/tests/verify-security.js
+  ```
+
+---
+
+## 🌐 Deployment
+
+### Frontend — Vercel (live)
+
+The deployed frontend is live at **https://jeevan-setu-opal.vercel.app**.
+
+| Setting | Value |
+|---|---|
+| Framework preset | Vite |
+| Build command | `npm run build` |
+| Output directory | `dist` |
+| Environment variable | `VITE_API_URL` → backend URL (optional; falls back to demo mode) |
+
+SPA rewrites are handled by `vercel.json`. A `netlify.toml` is also included for an equivalent Netlify deploy.
+
+### Backend — Node.js host
+
+The Express + Socket.io server runs on any Node host (Render, Railway, Fly.io, a VPS):
+
+```bash
+npm install
+npm run server   # listens on PORT (default 5000)
+```
+
+Set these environment variables on the host:
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `PORT` | No | Server port (default `5000`) |
+| `NODE_ENV` | Yes | Set to `production` |
+| `JWT_SECRET` | **Yes** | Session signing key — use a long random value |
+| `CLIENT_URL` | Yes | Allowed CORS origin (your frontend URL) |
+| `MONGODB_URI` | Yes | MongoDB connection string |
+| `TWILIO_ACCOUNT_SID` | No | Enables real SMS instead of simulation |
+| `TWILIO_AUTH_TOKEN` | No | Twilio API auth token |
+| `TWILIO_FROM_NUMBER` | No | Twilio sender number |
+
+Copy `.env.example` to `.env` locally. `.env` is git-ignored and must never be committed.
+
+> ⚠️ `server/config/constants.js` contains a **development-only fallback** `JWT_SECRET`. The server refuses to start in production without a real `JWT_SECRET` set in the environment — never rely on the fallback for a live deployment.
